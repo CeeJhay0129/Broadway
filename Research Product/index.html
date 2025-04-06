@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> 
+    <style>
+        .search-bar {
+            display: flex !important;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <p style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; font-size: 30px; color: white; margin-left: 4.8%;">Attendance</p>
+        <nav>
+            <ul>
+               <li><a href="#">Home</a></li>
+                <li><button onclick="displayExcel()">Records</button></li>
+                <li><a href="format.html">Format</a></li>
+                <li><button onclick="toggleTimeFormat()">Time</button></li>
+                <li><a href="settings.html">Settings</a></li>
+            </ul>
+        </nav>
+        <div class="search-bar">
+            <input type="text" placeholder="Search..." id="search">
+            <button type="button" class="search-button" onclick="searchExcel()">Search</button>
+        </div>
+
+        <div class="extract-button">
+            <input type="file" id="excelFile" accept=".xlsx, .xls" style="display: none;"> 
+            <button type="button" class="upload-button" onclick="document.getElementById('excelFile').click()">Upload File</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <img src="image.png">
+        <h1 id="current-time"></h1>
+        <p id="current-date"></p>
+
+        <div class="quotes">
+            <p>Welcome!</p>
+            <h1>Timekeeper.</h1>
+        </div>
+
+        <div id="search-results"></div> 
+    </div>
+
+    <div id="excelTable"></div>
+
+    <script>
+
+    let is24HourFormat = false;
+
+    function updateTime() {
+        let now = new Date();
+        let timeOptions = { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit', 
+            hour12: !is24HourFormat 
+        };
+        let time = now.toLocaleTimeString('en-US', timeOptions);
+        let date = now.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+
+        document.getElementById("current-time").textContent = time;
+        document.getElementById("current-date").textContent = date;
+    }
+
+    function toggleTimeFormat() {
+        is24HourFormat = !is24HourFormat;
+        updateTime();
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        updateTime();
+        setInterval(updateTime, 1000);
+    });
+
+let excelData = JSON.parse(localStorage.getItem("excelData")) || [];
+
+document.getElementById('excelFile').addEventListener('change', function(event) {
+    let file = event.target.files[0];
+    let reader = new FileReader();
+
+    reader.onload = function(e) {
+        let data = new Uint8Array(e.target.result);
+        let workbook = XLSX.read(data, { type: 'array' });
+        let sheetName = workbook.SheetNames[0]; 
+        let sheet = workbook.Sheets[sheetName];
+
+        excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        localStorage.setItem("excelData", JSON.stringify(excelData));
+
+        console.log("✅ Excel Data Loaded:", excelData);
+
+        if (excelData.length === 0) {
+            alert("⚠️ The uploaded file is empty or improperly formatted.");
+        } else {
+            alert("✅ Excel data loaded successfully!");
+        }
+    };
+
+    reader.readAsArrayBuffer(file);
+});
+
+function searchExcel() {
+            console.log("✅ Search button is loaded and clickable.");
+
+            let query = document.getElementById("search").value.toLowerCase().trim();
+
+            if (query === "") {
+                alert("⚠️ Please enter a search term.");
+                return;
+            }
+
+            if (excelData.length === 0) {
+                alert("⚠️ No data loaded. Upload a file first.");
+                return;
+            }
+
+            console.log("🔍 Searching for:", query);
+            let results = excelData.filter(row => 
+                Object.values(row).some(value => 
+                    value && String(value).toLowerCase().includes(query)
+                )
+            );
+
+            console.log("🔎 Found Results:", results);
+
+            localStorage.setItem("searchResults", JSON.stringify(results));
+            window.location.href = "search-results.html";
+        }
+
+function displayExcel() {
+    console.log("✅ Display button is loaded and clickable.");
+
+    if (excelData.length === 0) {
+        alert("⚠️ No data loaded. Upload a file first.");
+        return;
+    }
+
+    console.log("📊 Displaying all data (sorted alphabetically).");
+
+  
+    const sortedData = [...excelData].sort((a, b) => {
+        const nameA = a.name?.toLowerCase() || '';
+        const nameB = b.name?.toLowerCase() || '';
+        return nameA.localeCompare(nameB);
+    });
+
+    localStorage.setItem("searchResults", JSON.stringify(sortedData));
+
+    window.location.href = "search-results.html";
+}
+    </script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Records</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header class="header">
+        <p style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; font-size: 30px; color: white; margin-left: 4.8%;">Attendance</p>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="format.html">Format</a></li>
+                <li><a href="settings.html">Settings</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <img src="image.png">
+    </div>
+
+    <div class="container-text">
+        <h1>Records</h1>
+        <div id="search-results"></div>
+        <button onclick="goBack()">Back</button>
+    </div>
+
+    <input type="file" id="excelFile" accept=".xlsx, .xls" style="display: none;">
+    <button onclick="document.getElementById('excelFile').click()">Upload File</button>
+
+    <button onclick="displayExcel()">Show Records</button>
+    
+    <div id="excelTable"></div>
+
+<script>
+    let excelData = JSON.parse(localStorage.getItem("excelData")) || [];
+
+    document.getElementById('excelFile').addEventListener('change', function(event) {
+        let file = event.target.files[0];
+        let reader = new FileReader();
+    
+        reader.onload = function(e) {
+            let data = new Uint8Array(e.target.result);
+            let workbook = XLSX.read(data, { type: 'array' });
+            let sheetName = workbook.SheetNames[0]; 
+            let sheet = workbook.Sheets[sheetName];
+    
+            excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+            localStorage.setItem("excelData", JSON.stringify(excelData));
+    
+            console.log("✅ Excel Data Loaded:", excelData);
+    
+            if (excelData.length === 0) {
+                alert("⚠️ The uploaded file is empty or improperly formatted.");
+            } else {
+                alert("✅ Excel data loaded successfully!");
+            }
+        };
+    
+        reader.readAsArrayBuffer(file);
+    });
+
+    function displayExcel() {
+        if (excelData.length === 0) {
+            alert("⚠️ No data loaded. Upload a file first.");
+            return;
+        }
+    
+        let tableHTML = "<table border='1'><thead><tr>";
+    
+        let headers = excelData[0] || [];
+        headers.forEach(header => tableHTML += `<th>${header || "N/A"}</th>`);
+        tableHTML += "</tr></thead><tbody>";
+    
+        for (let i = 1; i < excelData.length; i++) {
+            tableHTML += "<tr>";
+            let row = excelData[i] || [];
+            headers.forEach((_, colIndex) => {
+                tableHTML += `<td>${row[colIndex] ? row[colIndex] : "—"}</td>`;
+            });
+            tableHTML += "</tr>";
+        }
+    
+        tableHTML += "</tbody></table>";
+        document.getElementById("excelTable").innerHTML = tableHTML;
+    }
+
+    function goBack() {
+        window.history.back();
+    }
+</script>
+</body>
+</html>
+

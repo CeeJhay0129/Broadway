@@ -1,0 +1,125 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    box-sizing: border-box;
+}
+
+body {
+    position: relative;
+}
+
+.container {
+    position: relative;
+    text-align: center;
+}
+
+.container img {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    object-fit: cover;
+}
+
+.container-text {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    overflow-y: auto;
+    max-height: 60vh;
+    text-align: center;
+    z-index: 1000;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: whitesmoke;
+    color: black;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid black;
+    text-align: left;
+}
+
+th {
+    background-color: #c46b30;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #555(0, 0, 0, 0.1);
+}
+
+button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    background-color: #555;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+
+    transition: background 0.3s ease-in-out, transform 0.2s;
+}
+
+button:hover {
+    background-color: #ad4f10;
+    transform: scale(1.05);
+}
+
+.format-button {
+    background-color: #33333300;
+    color: white;
+    border: 0;
+    font-size: 20px;
+    transition: none;
+}
+
+.format-button:hover {
+    background-color: rgba(0, 0, 0, 0);
+    transform: none;
+}
+
+.header {
+    background-color: #33333300;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+.header nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.header nav ul li {
+    display: inline;
+    margin: 0 28px;
+}
+
+.header nav ul li a {
+    color: white;
+    text-decoration: none;
+    font-size: 20px;
+}

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Excel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        table { width: 90%; margin: auto; border-collapse: collapse; }
+        th, td { border: 1px solid black; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        td:focus { outline: 2px solid blue; }
+        .container { margin: 20px; }
+        
+button {
+    font-size: 18px;
+    padding: 12px 20px;
+    margin: 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+    letter-spacing: 1px;
+}
+
+.save-btn {
+    padding: 8px 15px;
+    margin-left: 5px;
+    font-size: 16px;
+    border: none;
+    background-color: #555;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+
+    transition: background 0.3s ease-in-out, transform 0.2s;
+}
+
+.save-btn:hover {
+    background-color: #ad4f10;
+    transform: scale(1.05); 
+}
+
+.back-btn {
+    padding: 8px 15px;
+    margin-left: 5px;
+    font-size: 16px;
+    border: none;
+    background-color: #555;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+
+    transition: background 0.3s ease-in-out, transform 0.2s;
+}
+
+.back-btn:hover {
+    background-color: #ad4f10;
+    transform: scale(1.05);
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+    </style>
+</head>
+
+<body>
+
+    <h1>Edit Attendance Data</h1>
+
+    <div class="container">
+
+        <table id="excelTable"></table>
+    </div>
+
+    <button class="save-btn" onclick="saveEditedExcel()">Save Changes</button>
+    <button class="back-btn" onclick="goBack()">Back</button>
+    
+    <script>
+        let excelData = JSON.parse(localStorage.getItem("excelData")) || [];
+
+        function loadEditableTable() {
+            let table = document.getElementById("excelTable");
+
+            if (excelData.length === 0) {
+                table.innerHTML = "<p>No data loaded. Upload a file first.</p>";
+                return;
+            }
+
+            let headers = excelData[0]; 
+            let tableHTML = `<thead><tr>`;
+            headers.forEach(header => tableHTML += `<th>${header}</th>`);
+            tableHTML += `</tr></thead><tbody>`;
+
+            for (let i = 1; i < excelData.length; i++) {
+                tableHTML += `<tr>`;
+                headers.forEach((header, colIndex) => {
+                    let cellValue = excelData[i][colIndex] || "";
+                    tableHTML += `<td contenteditable="true" oninput="updateCell(${i}, ${colIndex}, this.innerText)">${cellValue}</td>`;
+                });
+                tableHTML += `</tr>`;
+            }
+
+            tableHTML += `</tbody>`;
+            table.innerHTML = tableHTML;
+        }
+
+        function updateCell(rowIndex, colIndex, value) {
+            excelData[rowIndex][colIndex] = value;
+        }
+
+        function saveEditedExcel() {
+            let worksheet = XLSX.utils.aoa_to_sheet(excelData);
+            let workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "EditedData");
+
+            XLSX.writeFile(workbook, "Updated_Attendance.xlsx");
+            alert("✅ Excel file has been saved!");
+        }
+
+        function goBack() {
+            window.location.href = "index.html";
+        }
+
+        document.addEventListener("DOMContentLoaded", loadEditableTable);
+    </script>
+
+</body>
+</html>

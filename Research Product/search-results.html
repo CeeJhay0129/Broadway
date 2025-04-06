@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Records</title>
+    <link rel="stylesheet" href="styles2.css">
+    
+</head>
+<body>
+
+    <header class="header">
+        <p style="font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; font-size: 30px; color: white; margin-left: 4.8%;">Attendance</p>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="format.html">Format</a></li>
+                <li><a href="settings.html">Settings</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <img src="image.png">
+    </div>
+
+    <div class="container-text">
+        <h1>Attendance Sheet</h1>
+        <div id="search-results"></div>
+        <button onclick="goBack()">Back</button>
+    </div>
+
+    <script>
+        function displayResults() {
+            let resultsDiv = document.getElementById("search-results");
+            let results = JSON.parse(localStorage.getItem("searchResults"));
+
+            if (!results || results.length === 0) {
+                resultsDiv.innerHTML = `<p style="color: red;">❌ No results found.</p>`;
+                return;
+            }
+
+            let tableHTML = `<table border="1">
+                                <thead>
+                                    <tr>`;
+
+            let headers = Object.keys(results[0]);
+            headers.forEach(header => {
+                tableHTML += `<th>${header}</th>`;
+            });
+
+            tableHTML += `</tr></thead><tbody>`;
+
+            results.forEach(row => {
+                tableHTML += "<tr>";
+                headers.forEach(header => {
+                    tableHTML += `<td>${row[header] || ""}</td>`;
+                });
+                tableHTML += "</tr>";
+            });
+
+            tableHTML += `</tbody></table>`;
+
+            resultsDiv.innerHTML = tableHTML;
+        }
+
+        function goBack() {
+            window.location.href = "index.html"; 
+        }
+
+        window.onload = displayResults;
+
+    </script>
+
+</body>
+</html>

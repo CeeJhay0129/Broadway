@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Time Record</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: left; 
+            padding: 10px; 
+        }
+
+        table {
+            width: 800px; /* Fixed width for uniform printing */
+            table-layout: fixed;
+            font-size: 12px;
+            border-collapse: collapse;
+            border: 1px solid black;
+            text-align: center;
+        }
+
+        th, td {
+            padding: 5px;
+            border: 1px solid black;
+            word-wrap: break-word;
+            overflow: hidden;
+        }
+
+        th {
+            background-color: lightblue;
+            cursor: pointer;
+        }
+
+        input[type="file"], .search-container, .print-button { 
+            margin: 5px 0; 
+        }
+
+        @media print {
+            * { 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+            }
+            .no-print { 
+                display: none; 
+            }
+            body { 
+                margin: 0; 
+                padding: 20px; 
+                text-align: left; 
+            }
+            table { 
+                width: 800px; 
+                font-size: 10px; 
+                border: 2px solid black; 
+            }
+            th, td { 
+                padding: 4px; 
+                border: 1px solid black; 
+            }
+        }
+    </style>
+</head>
+<body>
+
+<p style="font-size: 18px; color: black;">Civil Service Form No 48</p>
+<h2 style="font-size: 18px; color: black;">DAILY TIME RECORD</h2>
+
+<p id="namePlaceholder" style="font-size: 15px; color: black;"><b>______________________________________________</b></p>
+<p style="font-size: 15px; color: black;"><b>(Name)</b></p>
+
+<p id="datePlaceholder" style="font-size: 15px; color: black;"><b>For the month of - </b></p>
+
+<p id="arrivalPlaceholder" style="font-size: 15px; color: black;"><b>Official hours for arrival (Regular Days) -___________</b></p>
+<p id="departurePlaceholder" style="font-size: 15px; color: black;"><b>and departure (Saturdays) - ___________</b></p>
+
+<input type="file" id="excelFile" accept=".xlsx, .xls" class="no-print">
+<div class="search-container no-print">
+    <input type="text" id="searchInput" placeholder="Search name..." onkeyup="filterTableAndUpdateDetails()">
+</div>
+<button class="print-button no-print" onclick="window.print()">Print Table</button>
+<div id="tableContainer"></div>
+
+<button class="no-print" onclick="goBack()" style="margin-bottom: 10px; padding: 5px 10px; font-size: 14px; cursor: pointer;">⬅ Back</button>
+
+<p id="totalHoursPlaceholder" style="font-size: 15px; color: black;"><b>TOTAL HOURS: ________________________</b></p>
+
+<script>
+    function fillDate() {
+        const date = new Date();
+        const monthName = date.toLocaleString('default', { month: 'long' });
+        const year = date.getFullYear();
+        document.getElementById('datePlaceholder').innerHTML = `For the month of - <b>${monthName} ${year}</b>`;
+    }
+
+    window.onload = fillDate;
+
+    let excelData = [];
+    let headers = [];
+    let nameIndex = -1;
+    let totalHoursIndex = -1;
+    let checkInIndex = -1;
+    let checkOutIndex = -1;
+
+    document.getElementById('excelFile').addEventListener('change', function(event) {
+        let file = event.target.files[0];
+        let reader = new FileReader();
+
+        reader.onload = function(e) {
+            let data = new Uint8Array(e.target.result);
+            let workbook = XLSX.read(data, { type: 'array' });
+            let sheetName = workbook.SheetNames[0]; 
+            let sheet = workbook.Sheets[sheetName];
+
+            excelData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+            if (excelData.length > 1) {
+                headers = excelData[0];
+                nameIndex = headers.indexOf("Name");
+                totalHoursIndex = headers.indexOf("Total Hours");
+                checkInIndex = headers.indexOf("Check-in Time");
+                checkOutIndex = headers.indexOf("Check-out Time");
+
+                displayTable();
+            } else {
+                alert("⚠️ The uploaded file is empty or improperly formatted.");
+            }
+        };
+
+        reader.readAsArrayBuffer(file);
+    });
+
+    function displayTable() {
+        let container = document.getElementById("tableContainer");
+        container.innerHTML = "";
+
+        let table = document.createElement("table");
+        table.id = "dataTable";
+
+        let thead = document.createElement("thead");
+        let tbody = document.createElement("tbody");
+
+        let headerRow = document.createElement("tr");
+        headers.forEach((headerText, index) => {
+            let th = document.createElement("th");
+            th.textContent = headerText;
+            th.onclick = () => sortTable(index);
+            headerRow.appendChild(th);
+        });
+
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        excelData.slice(1).forEach(rowData => {
+            let row = document.createElement("tr");
+            rowData.forEach(cellData => {
+                let cell = document.createElement("td");
+                cell.textContent = cellData;
+                row.appendChild(cell);
+            });
+            tbody.appendChild(row);
+        });
+
+        table.appendChild(tbody);
+        container.appendChild(table);
+    }
+
+    function filterTableAndUpdateDetails() {
+        let query = document.getElementById("searchInput").value.toLowerCase().trim();
+        let rows = document.querySelectorAll("#dataTable tbody tr");
+        let found = false;
+
+        rows.forEach(row => {
+            let text = row.textContent.toLowerCase();
+            if (text.includes(query)) {
+                row.style.display = "";
+                if (!found) {
+                    let cells = row.cells;
+                    if (nameIndex !== -1) {
+                        document.getElementById("namePlaceholder").innerHTML = `<b>${cells[nameIndex].textContent}</b>`;
+                    }
+                    if (totalHoursIndex !== -1) {
+                        document.getElementById("totalHoursPlaceholder").innerHTML = `<b>TOTAL HOURS: ${cells[totalHoursIndex].textContent}</b>`;
+                    }
+                    if (checkInIndex !== -1) {
+                        document.getElementById("arrivalPlaceholder").innerHTML = `<b>Official hours for arrival (Regular Days) - ${cells[checkInIndex].textContent}</b>`;
+                    }
+                    if (checkOutIndex !== -1) {
+                        document.getElementById("departurePlaceholder").innerHTML = `<b>and departure (Saturdays) - ${cells[checkOutIndex].textContent}</b>`;
+                    }
+                    found = true;
+                }
+            } else {
+                row.style.display = "none";
+            }
+        });
+
+        if (!found) {
+            document.getElementById("namePlaceholder").innerHTML = `<b>______________________________________________</b>`;
+            document.getElementById("totalHoursPlaceholder").innerHTML = `<b>TOTAL HOURS: ________________________</b>`;
+            document.getElementById("arrivalPlaceholder").innerHTML = `<b>Official hours for arrival (Regular Days) - ___________</b>`;
+            document.getElementById("departurePlaceholder").innerHTML = `<b>and departure (Saturdays) - ___________</b>`;
+        }
+    }
+
+    function goBack() {
+        window.history.back();
+    }
+</script>
+
+</body>
+</html>
